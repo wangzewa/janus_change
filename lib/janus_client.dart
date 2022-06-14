@@ -2,6 +2,7 @@
 library janus_client;
 
 import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'dart:async';
 import 'dart:io';

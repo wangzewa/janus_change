@@ -77,6 +77,7 @@ class WebSocketJanusTransport extends JanusTransport {
       if (handleId != null) {
         data['handle_id'] = handleId;
       }
+      debugPrint('信令服务器信息发送：${data.toString()}');
       sink!.add(stringify(data));
       return parse(await stream.firstWhere((element) => (parse(element)['transaction'] == data['transaction']), orElse: () => {}));
     } else {
