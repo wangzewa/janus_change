@@ -97,5 +97,8 @@ class WebSocketJanusTransport extends JanusTransport {
     }
     sink = channel!.sink;
     stream = channel!.stream.asBroadcastStream();
+    stream.listen((event) {
+      print('信令服务器数据返回：${event.toString()}');
+    });
   }
 }
