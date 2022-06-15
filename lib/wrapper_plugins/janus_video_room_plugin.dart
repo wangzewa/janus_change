@@ -174,7 +174,7 @@ class JanusVideoRoomPlugin extends JanusPlugin {
       "token": token,
       "feed": feedId,
       "private_id": privateId,
-      // "streams": streams?.map((e) => e.toMap()).toList(),
+      "streams": streams?.map((e) => e.toMap()).toList(),
     }..removeWhere((key, value) => value == null);
     _handleRoomIdTypeDifference(payload);
     await this.send(data: payload);
