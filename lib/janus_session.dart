@@ -60,7 +60,7 @@ class JanusSession {
     request["session_id"] = sessionId;
     Map<String, dynamic>? response;
     if (T == JanusVideoRoomPlugin) {
-      plugin = JanusVideoRoomPlugin(transport: _transport, context: _context, handleId: handleId, session: this);
+      plugin = JanusVideoRoomPlugin(transport: _transport, context: _context, handleId: handleId, session: this,feedId: feedId);
     } else if (T == JanusVideoCallPlugin) {
       plugin = JanusVideoCallPlugin(transport: _transport, context: _context, handleId: handleId, session: this);
     } else if (T == JanusStreamingPlugin) {
