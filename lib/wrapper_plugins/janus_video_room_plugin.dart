@@ -129,12 +129,15 @@ class JanusVideoRoomPlugin extends JanusPlugin {
     await this.send(data: payload);
   }
 
-  Future<void> subscribeToStreams(List<PublisherStream> streams) async {
+  Future<void> subscribeToStreams(List<PublisherStream> streams,feed) async {
     if (streams.length > 0) {
       var payload = {
         'request': "subscribe",
-        'streams': streams.map((e) => e.toMap()).toList()
+        'streams': streams.map((e) => e.toMap()).toList(),
+        'feed':feed,
       };
+      feedId = feed.toString();
+      super.feedId = feed.toString();
       await this.send(data: payload);
     }
   }
