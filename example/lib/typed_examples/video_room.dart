@@ -51,10 +51,10 @@ class _VideoRoomState extends State<TypedVideoRoomV2Unified> {
     var streams = (sources)
         .map((e) => PublisherStream(mid: e['mid'], feed: e['feed']))
         .toList();
-    if (remoteHandle != null) {
-      await remoteHandle?.subscribeToStreams(streams);
-      return;
-    }
+    // if (remoteHandle != null) {
+    //   await remoteHandle?.subscribeToStreams(streams);
+    //   return;
+    // }
     remoteHandle = await session.attach<JanusVideoRoomPlugin>();
     print(sources);
     var start = await remoteHandle?.joinSubscriber(myRoom, streams: streams);
@@ -116,7 +116,7 @@ class _VideoRoomState extends State<TypedVideoRoomV2Unified> {
       constrains.putIfAbsent(dat, () => true);
     });
     myStream =
-        await plugin.initializeMediaDevices(mediaConstraints: constrains);
+    await plugin.initializeMediaDevices(mediaConstraints: constrains);
     RemoteStream mystr = RemoteStream('0');
     await mystr.init();
     mystr.videoRenderer.srcObject = myStream;
@@ -131,6 +131,8 @@ class _VideoRoomState extends State<TypedVideoRoomV2Unified> {
         List<Map<String, dynamic>> publisherStreams = [];
         for (Publishers publisher in data.publishers ?? []) {
           for (Streams stream in publisher.streams ?? []) {
+            print(stream.toJson());
+            print('laixinrenle ');
             feedStreams[publisher.id!] = {
               "id": publisher.id,
               "display": publisher.display,
@@ -148,7 +150,10 @@ class _VideoRoomState extends State<TypedVideoRoomV2Unified> {
       }
       if (data is VideoRoomNewPublisherEvent) {
         List<Map<String, dynamic>> publisherStreams = [];
+
         for (Publishers publisher in data.publishers ?? []) {
+          print(publisher.streams);
+          print('laixinrenle ');
           feedStreams[publisher.id!] = {
             "id": publisher.id,
             "display": publisher.display,
@@ -267,24 +272,24 @@ class _VideoRoomState extends State<TypedVideoRoomV2Unified> {
         ),
         body: GridView.builder(
             gridDelegate:
-                SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+            SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
             itemCount:
-                remoteStreams.entries.map((e) => e.value).toList().length,
+            remoteStreams.entries.map((e) => e.value).toList().length,
             itemBuilder: (context, index) {
               List<RemoteStream> items =
-                  remoteStreams.entries.map((e) => e.value).toList();
+              remoteStreams.entries.map((e) => e.value).toList();
               RemoteStream remoteStream = items[index];
               return Stack(
                 children: [
                   RTCVideoView(remoteStream.audioRenderer,
-                      filterQuality: FilterQuality.high,
+                      // filterQuality: FilterQuality.high,
                       objectFit:
-                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                      RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                       mirror: true),
                   RTCVideoView(remoteStream.videoRenderer,
-                      filterQuality: FilterQuality.high,
+                      // filterQuality: FilterQuality.high,
                       objectFit:
-                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                      RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                       mirror: true)
                 ],
               );

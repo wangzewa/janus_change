@@ -174,11 +174,11 @@ class JanusPlugin {
         debugPrint('---------------------------轨道信息---$feedId');
         debugPrint('------${peerConnection.getConfiguration.keys}');
         debugPrint('receiverId------${event.transceiver?.receiver.receiverId}');
-        debugPrint('receiver parameters------${event.transceiver?.receiver.parameters}');
+        debugPrint('receiver parameters------${event.transceiver?.receiver.parameters.toMap()}');
         debugPrint('receiver parameters------${event.receiver?.parameters}');
         debugPrint(' event receiverId------${event.receiver?.receiverId}');
         debugPrint('transceiver mid------${event.transceiver?.mid}');
-        debugPrint('transceiver sender param------${event.transceiver?.sender.parameters}');
+        debugPrint('transceiver sender param------${event.transceiver?.sender.parameters.toMap()}');
         debugPrint('event.transceiver?.sender------${event.transceiver?.sender.senderId}');
         debugPrint('event.transceiver?.transceiverId------${event.transceiver?.transceiverId}');
         // debugPrint('receiverId------${event.transceiver?.}');
