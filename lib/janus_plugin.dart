@@ -16,6 +16,7 @@ class JanusPlugin {
   late JanusClient _context;
   late JanusTransport? _transport;
   late JanusSession? _session;
+  String? feedId;
   String? plugin;
   bool _initialized = false;
   // internal method which takes care of type of roomId which is normally int but can be string if set in janus config for room
@@ -57,6 +58,7 @@ class JanusPlugin {
       required JanusClient context,
       required JanusTransport transport,
       required JanusSession session,
+      this.feedId,
       this.plugin}) {
     _context = context;
     _session = session;
@@ -175,6 +177,7 @@ class JanusPlugin {
               _remoteTrackStreamController?.add(RemoteTrack(
                   track: event.receiver!.track,
                   mid: event.receiver!.track!.id,
+                  feedId: feedId,
                   flowing: true));
           };
           event.receiver!.track!.onMute = () {
@@ -182,6 +185,7 @@ class JanusPlugin {
               _remoteTrackStreamController?.add(RemoteTrack(
                   track: event.receiver!.track,
                   mid: event.receiver!.track!.id,
+                  feedId: feedId,
                   flowing: false));
           };
           event.receiver!.track!.onEnded = () {
@@ -189,6 +193,7 @@ class JanusPlugin {
               _remoteTrackStreamController?.add(RemoteTrack(
                   track: event.receiver!.track,
                   mid: event.receiver!.track!.id,
+                  feedId: feedId,
                   flowing: false));
           };
         }
@@ -202,7 +207,7 @@ class JanusPlugin {
             event.transceiver != null ? event.transceiver!.mid : event.track.id;
         try {
           _remoteTrackStreamController
-              ?.add(RemoteTrack(track: event.track, mid: mid, flowing: true));
+              ?.add(RemoteTrack(track: event.track, mid: mid, flowing: true,feedId: feedId,));
         } catch (e) {
           _context._logger.fine(e);
         }
@@ -222,7 +227,7 @@ class JanusPlugin {
             try {
               if (!_remoteTrackStreamController!.isClosed)
                 _remoteTrackStreamController?.add(
-                    RemoteTrack(track: event.track, mid: mid, flowing: false));
+                    RemoteTrack(track: event.track, mid: mid, flowing: false,feedId: feedId,));
             } catch (e) {
               print(e);
             }
@@ -242,7 +247,7 @@ class JanusPlugin {
             try {
               if (!_remoteTrackStreamController!.isClosed)
                 _remoteTrackStreamController?.add(
-                    RemoteTrack(track: event.track, mid: mid, flowing: false));
+                    RemoteTrack(track: event.track, mid: mid, flowing: false,feedId: feedId,));
             } catch (e) {
               print(e);
             }
@@ -262,7 +267,7 @@ class JanusPlugin {
               if (mid != null) {
                 if (!_remoteTrackStreamController!.isClosed)
                   _remoteTrackStreamController?.add(
-                      RemoteTrack(track: event.track, mid: mid, flowing: true));
+                      RemoteTrack(track: event.track, mid: mid, flowing: true,feedId: feedId,));
               }
             }
           } catch (e) {

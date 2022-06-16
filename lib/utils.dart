@@ -123,7 +123,7 @@ class RemoteTrack {
   MediaStreamTrack? track;
   String? mid;
   bool? flowing;
-
+  String? feedId;
 //<editor-fold desc="Data Methods" defaultstate="collapsed">
 
   RemoteTrack({
@@ -131,6 +131,7 @@ class RemoteTrack {
     required this.track,
     required this.mid,
     required this.flowing,
+    required this.feedId,
   });
 
   RemoteTrack copyWith({
@@ -138,12 +139,14 @@ class RemoteTrack {
     MediaStreamTrack? track,
     String? mid,
     bool? flowing,
+    String? feedId,
   }) {
     return new RemoteTrack(
       stream: stream ?? this.stream,
       track: track ?? this.track,
       mid: mid ?? this.mid,
       flowing: flowing ?? this.flowing,
+      feedId: feedId??this.feedId,
     );
   }
 
@@ -165,6 +168,7 @@ class RemoteTrack {
       track: map['track'] as MediaStreamTrack?,
       mid: map['mid'] as String?,
       flowing: map['flowing'] as bool?,
+      feedId: map['feedId'] as String?,
     );
   }
 

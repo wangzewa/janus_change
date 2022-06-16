@@ -50,7 +50,7 @@ class JanusSession {
     }
   }
 
-  Future<T> attach<T extends JanusPlugin>() async {
+  Future<T> attach<T extends JanusPlugin>({String? feedId}) async {
     JanusPlugin plugin;
     int? handleId;
     String transaction = getUuid().v4();
@@ -105,6 +105,7 @@ class JanusSession {
       }
     }
     plugin.handleId = handleId;
+    plugin.feedId = feedId;
     _pluginHandles[handleId] = plugin;
     try {
       await plugin._init();
