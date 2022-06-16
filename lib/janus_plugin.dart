@@ -171,6 +171,20 @@ class JanusPlugin {
       peerConnection.onTrack = (RTCTrackEvent event) async {
         _context._logger.fine('onTrack called with event');
         _context._logger.fine(event.toString());
+        debugPrint('---------------------------轨道信息---$feedId');
+        debugPrint('------${peerConnection.getConfiguration.keys}');
+        debugPrint('receiverId------${event.transceiver?.receiver.receiverId}');
+        debugPrint('receiver parameters------${event.transceiver?.receiver.parameters}');
+        debugPrint('receiver parameters------${event.receiver?.parameters}');
+        debugPrint(' event receiverId------${event.receiver?.receiverId}');
+        debugPrint('transceiver mid------${event.transceiver?.mid}');
+        debugPrint('transceiver sender param------${event.transceiver?.sender.parameters}');
+        debugPrint('event.transceiver?.sender------${event.transceiver?.sender.senderId}');
+        debugPrint('event.transceiver?.transceiverId------${event.transceiver?.transceiverId}');
+        // debugPrint('receiverId------${event.transceiver?.}');
+        // debugPrint('receiverId------${event.transceiver?.receiver.receiverId}');
+        // debugPrint('receiverId------${event.transceiver?.receiver.receiverId}');
+        debugPrint('-----------------------轨道信息结束');
         if (event.receiver != null) {
           event.receiver!.track!.onUnMute = () {
             if (!_remoteTrackStreamController!.isClosed)
