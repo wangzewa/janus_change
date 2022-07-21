@@ -154,6 +154,8 @@ class JanusVideoRoomPlugin extends JanusPlugin {
     int? privateId,
     int? feedId,
     String? pin,
+    bool video = true,
+    bool audio = true,
     String? token,
   }) async {
     Future<void> start(
@@ -178,11 +180,23 @@ class JanusVideoRoomPlugin extends JanusPlugin {
       "token": token,
       "feed": feedId,
       "private_id": privateId,
+      "video":video,
+      "audio":audio,
       "streams": streams?.map((e) => e.toMap()).toList(),
     }..removeWhere((key, value) => value == null);
     _handleRoomIdTypeDifference(payload);
     await this.send(data: payload);
     return start;
+  }
+
+  ///更改流订阅
+  Future<void> subConfigure({bool video = false,bool audio = false})async{
+    var payload = {
+      'request':'configure',
+      'audio':audio,
+      'video':video,
+    };
+    await this.send(data: payload,);
   }
 
   /// sends the publish request to [JanusVideoRoom]. It should be called once [VideoRoomJoinedEvent] is received from server.

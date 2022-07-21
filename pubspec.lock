@@ -147,7 +147,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: f6b7c790ca0e8944f64176e1489839d14076debb
+      resolved-ref: "878ebcbcdd20611c9b5b95fb6f11e63e4301bffc"
       url: "https://github.com/wangzewa/flutter_webrtc_change.git"
     source: git
     version: "0.8.9"
