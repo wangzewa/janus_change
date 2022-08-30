@@ -185,7 +185,8 @@ class JanusVideoRoomPlugin extends JanusPlugin {
       "streams": streams?.map((e) => e.toMap()).toList(),
     }..removeWhere((key, value) => value == null);
     _handleRoomIdTypeDifference(payload);
-    await this.send(data: payload);
+    var res = await this.send(data: payload);
+    debugPrint("加入订阅的结果-----------$res");
     return start;
   }
 
