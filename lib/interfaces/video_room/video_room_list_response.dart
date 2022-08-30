@@ -68,7 +68,7 @@ class JanusVideoRoom {
       bool? isPrivate, 
       int? maxPublishers, 
       int? bitrate, 
-      int? bitrateCap, 
+      bool? bitrateCap,
       int? firFreq, 
       bool? requirePvtid, 
       bool? requireE2ee, 
@@ -150,7 +150,7 @@ class JanusVideoRoom {
   bool? _isPrivate;
   int? _maxPublishers;
   int? _bitrate;
-  int? _bitrateCap;
+  bool? _bitrateCap;
   int? _firFreq;
   bool? _requirePvtid;
   bool? _requireE2ee;
@@ -177,7 +177,7 @@ class JanusVideoRoom {
   bool? get isPrivate => _isPrivate;
   int? get maxPublishers => _maxPublishers;
   int? get bitrate => _bitrate;
-  int? get bitrateCap => _bitrateCap;
+  bool? get bitrateCap => _bitrateCap;
   int? get firFreq => _firFreq;
   bool? get requirePvtid => _requirePvtid;
   bool? get requireE2ee => _requireE2ee;
