@@ -16,14 +16,16 @@ class JanusPlugin {
   late JanusClient _context;
   late JanusTransport? _transport;
   late JanusSession? _session;
-  String? feedId;
   String? plugin;
   bool _initialized = false;
+
   // internal method which takes care of type of roomId which is normally int but can be string if set in janus config for room
   _handleRoomIdTypeDifference(dynamic payload) {
-    payload["room"] = _context._stringIds == false
-        ? payload["room"]
-        : payload["room"].toString();
+    if (payload["room"] != null) {
+      payload["room"] = _context._stringIds == false
+          ? payload["room"]
+          : payload["room"].toString();
+    }
   }
 
   late Stream<dynamic> _events;
@@ -49,6 +51,7 @@ class JanusPlugin {
   Timer? _pollingTimer;
   JanusWebRTCHandle? webRTCHandle;
   Map<String, dynamic>? _webRtcConfiguration;
+
   //temporary variables
   StreamSubscription? _wsStreamSubscription;
   late bool pollingActive;
@@ -58,7 +61,6 @@ class JanusPlugin {
       required JanusClient context,
       required JanusTransport transport,
       required JanusSession session,
-      this.feedId,
       this.plugin}) {
     _context = context;
     _session = session;
@@ -75,6 +77,9 @@ class JanusPlugin {
     _context._logger.fine('webRTC stack intialized');
     RTCPeerConnection peerConnection =
         await createPeerConnection(_webRtcConfiguration!, {});
+    peerConnection.onRenegotiationNeeded = () {
+      _context._logger.fine('onRenegotiationNeeded');
+    };
     //unified plan webrtc tracks emitter
     _handleUnifiedWebRTCTracksEmitter(peerConnection);
     //send ice candidates to janus server on this specific handle
@@ -171,27 +176,12 @@ class JanusPlugin {
       peerConnection.onTrack = (RTCTrackEvent event) async {
         _context._logger.fine('onTrack called with event');
         _context._logger.fine(event.toString());
-        debugPrint('---------------------------轨道信息---$feedId');
-        debugPrint('------${peerConnection.getConfiguration.keys}');
-        debugPrint('receiverId------${event.transceiver?.receiver.receiverId}');
-        debugPrint('receiver parameters------${event.transceiver?.receiver.parameters}');
-        debugPrint('receiver parameters------${event.receiver?.parameters}');
-        debugPrint(' event receiverId------${event.receiver?.receiverId}');
-        debugPrint('transceiver mid------${event.transceiver?.mid}');
-        debugPrint('transceiver sender param------${event.transceiver?.sender.parameters}');
-        debugPrint('event.transceiver?.sender------${event.transceiver?.sender.senderId}');
-        debugPrint('event.transceiver?.transceiverId------${event.transceiver?.transceiverId}');
-        // debugPrint('receiverId------${event.transceiver?.}');
-        // debugPrint('receiverId------${event.transceiver?.receiver.receiverId}');
-        // debugPrint('receiverId------${event.transceiver?.receiver.receiverId}');
-        debugPrint('-----------------------轨道信息结束');
         if (event.receiver != null) {
           event.receiver!.track!.onUnMute = () {
             if (!_remoteTrackStreamController!.isClosed)
               _remoteTrackStreamController?.add(RemoteTrack(
                   track: event.receiver!.track,
                   mid: event.receiver!.track!.id,
-                  feedId: feedId,
                   flowing: true));
           };
           event.receiver!.track!.onMute = () {
@@ -199,7 +189,6 @@ class JanusPlugin {
               _remoteTrackStreamController?.add(RemoteTrack(
                   track: event.receiver!.track,
                   mid: event.receiver!.track!.id,
-                  feedId: feedId,
                   flowing: false));
           };
           event.receiver!.track!.onEnded = () {
@@ -207,7 +196,6 @@ class JanusPlugin {
               _remoteTrackStreamController?.add(RemoteTrack(
                   track: event.receiver!.track,
                   mid: event.receiver!.track!.id,
-                  feedId: feedId,
                   flowing: false));
           };
         }
@@ -221,7 +209,7 @@ class JanusPlugin {
             event.transceiver != null ? event.transceiver!.mid : event.track.id;
         try {
           _remoteTrackStreamController
-              ?.add(RemoteTrack(track: event.track, mid: mid, flowing: true,feedId: feedId,));
+              ?.add(RemoteTrack(track: event.track, mid: mid, flowing: true));
         } catch (e) {
           _context._logger.fine(e);
         }
@@ -241,7 +229,7 @@ class JanusPlugin {
             try {
               if (!_remoteTrackStreamController!.isClosed)
                 _remoteTrackStreamController?.add(
-                    RemoteTrack(track: event.track, mid: mid, flowing: false,feedId: feedId,));
+                    RemoteTrack(track: event.track, mid: mid, flowing: false));
             } catch (e) {
               print(e);
             }
@@ -261,7 +249,7 @@ class JanusPlugin {
             try {
               if (!_remoteTrackStreamController!.isClosed)
                 _remoteTrackStreamController?.add(
-                    RemoteTrack(track: event.track, mid: mid, flowing: false,feedId: feedId,));
+                    RemoteTrack(track: event.track, mid: mid, flowing: false));
             } catch (e) {
               print(e);
             }
@@ -281,7 +269,7 @@ class JanusPlugin {
               if (mid != null) {
                 if (!_remoteTrackStreamController!.isClosed)
                   _remoteTrackStreamController?.add(
-                      RemoteTrack(track: event.track, mid: mid, flowing: true,feedId: feedId,));
+                      RemoteTrack(track: event.track, mid: mid, flowing: true));
               }
             }
           } catch (e) {
@@ -351,15 +339,13 @@ class JanusPlugin {
   }
 
   void _addTrickleCandidate(event) {
-        final isTrickleEvent = event['janus'] == 'trickle';
-        if (isTrickleEvent) {
-          final candidateMap = event['candidate'];
-          RTCIceCandidate candidate = RTCIceCandidate(
-              candidateMap['candidate'],
-              candidateMap['sdpMid'],
-              candidateMap['sdpMLineIndex']);
-          webRTCHandle!.peerConnection!.addCandidate(candidate);
-        } 
+    final isTrickleEvent = event['janus'] == 'trickle';
+    if (isTrickleEvent) {
+      final candidateMap = event['candidate'];
+      RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
+          candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+      webRTCHandle!.peerConnection!.addCandidate(candidate);
+    }
   }
 
   _handlePolling() async {
@@ -422,6 +408,34 @@ class JanusPlugin {
 
   Future<void> hangup() async {
     _cancelPollingTimer();
+    await _disposeMediaStreams();
+  }
+
+  Future<void> _disposeMediaStreams(
+      {ignoreRemote = false, video = true, audio = true}) async {
+    _context._logger
+        .fine('disposing localStream and remoteStream if it already exists');
+    if (webRTCHandle!.localStream != null) {
+      if (audio) {
+        webRTCHandle?.localStream?.getAudioTracks().forEach((element) async {
+          await element.stop();
+        });
+      }
+      if (video) {
+        webRTCHandle?.localStream?.getVideoTracks().forEach((element) async {
+          await element.stop();
+        });
+      }
+      if (audio && video) {
+        webRTCHandle?.localStream?.dispose();
+      }
+    }
+    if (webRTCHandle!.remoteStream != null && !ignoreRemote) {
+      webRTCHandle?.remoteStream?.getTracks().forEach((element) async {
+        await element.stop();
+      });
+      webRTCHandle?.remoteStream?.dispose();
+    }
   }
 
   /// This function takes care of cleaning up all the internal stream controller and timers used to make janus_client compatible with streams and polling support
@@ -529,20 +543,37 @@ class JanusPlugin {
   /// you can use this method to get the stream and show live preview of your camera to RTCVideoRendererView
   Future<MediaStream?> initializeMediaDevices(
       {bool? useDisplayMediaDevices = false,
+        required bool isVideo,
       Map<String, dynamic>? mediaConstraints}) async {
-    if (mediaConstraints == null) {
-      List<MediaDeviceInfo> audioDevices = await Helper.audiooutputs;
-      List<MediaDeviceInfo> videoDevices = await Helper.cameras;
-      mediaConstraints = {
-        "audio": audioDevices.length > 0,
-        "video": videoDevices.length > 0
-      };
+    await _disposeMediaStreams(ignoreRemote: true);
+    List<MediaDeviceInfo> videoDevices = await getVideoInputDevices();
+    List<MediaDeviceInfo> audioDevices = await getAudioInputDevices();
+    if (videoDevices.isEmpty && audioDevices.isEmpty) {
+      throw Exception("No device found for media generation");
     }
-
+    if (mediaConstraints == null) {
+      if (videoDevices.isEmpty && audioDevices.isNotEmpty) {
+        mediaConstraints = {"audio": true, "video": false};
+      } else if (videoDevices.length == 1 && audioDevices.isNotEmpty) {
+        mediaConstraints = {"audio": true, 'video': true};
+      } else {
+        mediaConstraints = {
+          "audio": audioDevices.length > 0,
+          'video': {
+            'deviceId': {'exact': isVideo?videoDevices.first.deviceId:videoDevices[1].deviceId},
+          },
+        };
+      }
+    }
+    _context._logger.fine(mediaConstraints);
     if (webRTCHandle != null) {
-      webRTCHandle!.localStream = useDisplayMediaDevices == true
-          ? (await navigator.mediaDevices.getDisplayMedia(mediaConstraints))
-          : (await navigator.mediaDevices.getUserMedia(mediaConstraints));
+      if (useDisplayMediaDevices == true) {
+        webRTCHandle!.localStream =
+            await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+      } else {
+        webRTCHandle!.localStream =
+            await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      }
       if (_context._isUnifiedPlan && !_context._usePlanB) {
         _context._logger.fine('using unified plan');
         webRTCHandle!.localStream!.getTracks().forEach((element) async {
@@ -563,26 +594,57 @@ class JanusPlugin {
     }
   }
 
+  Future<List<MediaDeviceInfo>> getVideoInputDevices() async {
+    return (await navigator.mediaDevices.enumerateDevices())
+        .where((element) => element.kind == 'videoinput')
+        .toList();
+  }
+
+  Future<List<MediaDeviceInfo>> getAudioInputDevices() async {
+    return (await navigator.mediaDevices.enumerateDevices())
+        .where((element) => element.kind == 'audioinput')
+        .toList();
+  }
+
   /// a utility method which can be used to switch camera of user device if it has more than one camera
-  Future<bool> switchCamera() async {
-    MediaStreamTrack? videoTrack;
-    if (webRTCHandle!.localStream != null) {
-      videoTrack = webRTCHandle!.localStream!
-          .getVideoTracks()
-          .firstWhere((track) => track.kind == "video");
-      return await Helper.switchCamera(videoTrack);
-    } else {
-      if (webRTCHandle!.peerConnection!.getLocalStreams().length > 0) {
-        videoTrack = webRTCHandle?.peerConnection
-            ?.getLocalStreams()
-            .first
-            ?.getVideoTracks()
-            .firstWhereOrNull((track) => track.kind == "video");
-        if (videoTrack != null) {
-          return await Helper.switchCamera(videoTrack);
-        }
+  /// [deviceId] : device id of the camera you want to switch to
+  /// [deviceId] is important for switchCamera to work in browsers.
+  Future<bool> switchCamera({String? deviceId}) async {
+    List<MediaDeviceInfo> videoDevices = await getVideoInputDevices();
+    if (videoDevices.isEmpty) {
+      throw Exception("No Camera Found");
+    }
+    if (kIsWeb) {
+      if (deviceId == null) {
+        _context._logger.fine(
+            'deviceId not provided,hence switching to default last deviceId should be of back camera ideally');
+        deviceId = videoDevices.last.deviceId;
       }
-      throw "Media devices and stream not initialized,try calling initializeMediaDevices() ";
+      await _disposeMediaStreams(ignoreRemote: true);
+      webRTCHandle!.localStream = await navigator.mediaDevices.getUserMedia({
+        'video': {
+          'deviceId': {'exact': deviceId}
+        },
+        'audio': true
+      });
+      List<RTCRtpSender> senders =
+          (await webRTCHandle!.peerConnection!.getSenders());
+      webRTCHandle!.localStream?.getTracks().forEach((element) async {
+        senders.forEach((sender) async {
+          if (sender.track?.kind == element.kind) {
+            await sender.replaceTrack(element);
+          }
+        });
+      });
+      return true;
+    } else {
+      if (webRTCHandle?.localStream != null) {
+        _context._logger.fine(
+            'using helper to switch camera, only works in android and ios');
+        return Helper.switchCamera(
+            webRTCHandle!.localStream!.getVideoTracks().first);
+      }
+      return false;
     }
   }
 

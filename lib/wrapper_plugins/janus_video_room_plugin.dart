@@ -1,13 +1,12 @@
 part of janus_client;
 
 class JanusVideoRoomPlugin extends JanusPlugin {
-  JanusVideoRoomPlugin({handleId, context, transport, session,feedId})
+  JanusVideoRoomPlugin({handleId, context, transport, session})
       : super(
             context: context,
             handleId: handleId,
             plugin: JanusPlugins.VIDEO_ROOM,
             session: session,
-            feedId: feedId,
             transport: transport);
 
   ///  This allows you to modify the room description, secret, pin and whether it's private or not:
@@ -129,18 +128,16 @@ class JanusVideoRoomPlugin extends JanusPlugin {
     await this.send(data: payload);
   }
 
-  Future<void> subscribeToStreams(List<PublisherStream> streams,feed) async {
+  Future<void> subscribeToStreams(List<PublisherStream> streams) async {
     if (streams.length > 0) {
       var payload = {
         'request': "subscribe",
-        'streams': streams.map((e) => e.toMap()).toList(),
-        'feed':feed,
+        'streams': streams.map((e) => e.toMap()).toList()
       };
-      feedId = feed.toString();
-      super.feedId = feed.toString();
       await this.send(data: payload);
     }
   }
+
 
   /// joins the [JanusVideoRoom] as a media publisher on provided [roomId] with its name as [displayName] and optionally can provide your own [id].
   Future<
@@ -185,19 +182,8 @@ class JanusVideoRoomPlugin extends JanusPlugin {
       "streams": streams?.map((e) => e.toMap()).toList(),
     }..removeWhere((key, value) => value == null);
     _handleRoomIdTypeDifference(payload);
-    var res = await this.send(data: payload);
-    debugPrint("加入订阅的结果-----------$res");
+    await this.send(data: payload);
     return start;
-  }
-
-  ///更改流订阅
-  Future<void> subConfigure({bool video = false,bool audio = false})async{
-    var payload = {
-      'request':'configure',
-      'audio':audio,
-      'video':video,
-    };
-    await this.send(data: payload,);
   }
 
   /// sends the publish request to [JanusVideoRoom]. It should be called once [VideoRoomJoinedEvent] is received from server.
@@ -229,6 +215,16 @@ class JanusVideoRoomPlugin extends JanusPlugin {
           audioRecv: false, audioSend: true, videoRecv: false, videoSend: true);
     }
     await this.send(data: payload, jsep: offer);
+  }
+
+  ///更改流订阅
+  Future<void> subConfigure({bool video = false,bool audio = false})async{
+    var payload = {
+      'request':'configure',
+      'audio':audio,
+      'video':video,
+    };
+    await this.send(data: payload,);
   }
 
   /// sends hangup request on current active [JanusVideoRoomPlugin] to tear off active PeerConnection in-effect leaving the room.
